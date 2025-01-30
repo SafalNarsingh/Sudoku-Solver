@@ -241,84 +241,150 @@
 </div>
 </div>
 
-<script>      
-
-function renderPuzzle(puzzle) {
-    console.log('Puzzle received:', puzzle); // Add this logging
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach((cell, index) => {
-        const row = Math.floor(index / 9);
-        const col = index % 9;
-        const value = puzzle[row][col];
+<script>
+    // Global variables
+    let gameBoard = [...Array(9)].map(() => Array(9).fill(null));
+    let solutionBoard = [];
+    let selectedCell = null;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM Content Loaded");
         
-        console.log(`Cell (${row},${col}): ${value}`); // Add detailed logging
+        // Check session storage
+        const puzzleData = sessionStorage.getItem('sudokuPuzzle');
+        console.log('Retrieved puzzle data:', puzzleData);
         
-        if (value !== 0) {
-            cell.textContent = value;
-            cell.classList.add('pre-filled');
-            // cell.setAttribute('disabled', true);
+        // Initialize game state
+        gameBoard = [...Array(9)].map(() => Array(9).fill(null));
+        solutionBoard = [];
+        selectedCell = null;
+    
+        // Initialize the grid
+        initializeGrid();
+        initializeNumberButtons();
+        
+        if (puzzleData) {
+            try {
+                const data = JSON.parse(puzzleData);
+                console.log('Parsed puzzle data:', data);
+                if (data.puzzle && data.solution) {
+                    gameBoard = data.puzzle;
+                    solutionBoard = data.solution;
+                    renderBoard(gameBoard);
+                } else {
+                    console.error('Invalid puzzle data structure');
+                }
+            } catch (error) {
+                console.error('Error parsing puzzle data:', error);
+            }
+        } else {
+            console.log('No puzzle data found in session storage');
+            // Fetch new puzzle if no data in session storage
+            fetchSudoku(30); // Default to medium difficulty
         }
     });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    initializeGrid();
-    initializeNumberButtons();
-
-    // Load puzzle from session storage
-    const puzzleData = sessionStorage.getItem('sudokuPuzzle');
-    console.log('Stored puzzle data:', puzzleData); // Add this logging
     
-    if (puzzleData) {
-        try {
-            const puzzle = JSON.parse(puzzleData);
-            renderPuzzle(puzzle);
-            sessionStorage.removeItem('sudokuPuzzle'); // Clear after loading
-        } catch (error) {
-            console.error('Error parsing puzzle:', error);
+    function renderBoard(board) {
+        console.log('Rendering board:', board);
+        
+        const grid = document.querySelector('.sudoku-grid'); 
+        grid.innerHTML = '';  // Clear any previous cells
+    
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-row', row);
+                cell.setAttribute('data-col', col);
+                cell.setAttribute('tabindex', '0');
+    
+                if (board[row][col] !== 0 && board[row][col] !== null) {
+                    cell.textContent = board[row][col];
+                    cell.classList.add('initial-number');
+                } else {
+                    cell.addEventListener('click', () => selectCell(cell));
+                }
+    
+                grid.appendChild(cell);
+            }
         }
     }
-});
-
-//JS for userprofile
-const userProfile = document.getElementById('userProfile');
-    if (userProfile) {
-        userProfile.classList.add('authenticated');
+    
+    function selectCell(cell) {
+        console.log('Cell selected:', cell);
+    
+        // Remove previous selection
+        if (selectedCell) {
+            selectedCell.classList.remove('selected');
+        }
+    
+        selectedCell = cell;
+        cell.classList.add('selected');
+    
+        // Highlight related cells
+        highlightRelatedCells(cell);
+    }
+    
+    
+    function enterNumber(num) {
+        if (!selectedCell) {
+            console.log('No cell selected');
+            return;
+        }
+    
+        const row = parseInt(selectedCell.getAttribute('data-row'));
+        const col = parseInt(selectedCell.getAttribute('data-col'));
+    
+        // Check if row or col is out of bounds
+        if (row < 0 || row > 8 || col < 0 || col > 8) {
+            console.error("Invalid row or column:", row, col);
+            return;
+        }
+    
+        if (!solutionBoard[row] || solutionBoard[row][col] === undefined) {
+            console.error(`Invalid board access at [${row}][${col}]`);
+            return;
+        }
+    
+        if (gameBoard[row][col] !== 0 && gameBoard[row][col] !== null) {
+            console.log('Cannot modify initial number');
+            return;
+        }
+    
+        if (solutionBoard[row][col] === num) {
+            selectedCell.textContent = num;
+            gameBoard[row][col] = num;
+            selectedCell.classList.add('correct-number');
+            selectedCell.style.animation = 'numberEnter 0.3s ease';
+    
+            setTimeout(() => { selectedCell.style.animation = ''; }, 300);
+    
+            if (isPuzzleComplete()) {
+                handlePuzzleCompletion();
+            }
+        } else {
+            selectedCell.style.animation = 'invalidMove 0.3s ease';
+            setTimeout(() => { selectedCell.style.animation = ''; }, 300);
+        }
+    }
+    
+    
+    function initializeGrid() {
+        console.log('Initializing grid');
         
-        userProfile.addEventListener('click', (event) => {
-            event.stopPropagation();
-            userProfile.classList.toggle('expanded');
-        });
 
-        document.addEventListener('click', (event) => {
-            if (!userProfile.contains(event.target)) {
-                userProfile.classList.remove('expanded');
-            }
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell, index) => {
+            cell.setAttribute('tabindex', '0');
+            cell.addEventListener('click', () => {
+                console.log(`Cell clicked: ${index}`);
+                selectCell(cell);
+            });
         });
+        
     }
-
-    // Change username function
-    function changeUsername() {
-    const newUsername = prompt('Enter new username:');
-    if (newUsername && newUsername.trim() !== '') {
-        fetch('/change-username/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({username: newUsername.trim()})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.querySelector('.username').textContent = newUsername.trim();
-            }
-        });
-    }
-}
-
-// Helper function to get CSRF token
+    
+    // Helper function to get CSRF token
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -333,227 +399,144 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-    // Delete profile function
-    function deleteProfile() {
-    if (confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
-        // Get CSRF token
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    function initializeNumberButtons() {
+        console.log('Initializing number buttons');
+        for (let i = 1; i <= 9; i++) {
+            const button = document.querySelector(`.rectangle${i}`);
+            if (button) {
+                button.addEventListener('click', () => {
+                    console.log(`Number button clicked: ${i}`);
+                    enterNumber(i);
+                });
+            } else {
+                console.error(`Button not found: .rectangle${i}`);
+            }
+        }
+    }
+    
+    function fetchSudoku(clues) {
+        console.log('Fetching sudoku with clues:', clues);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
-        fetch('/delete-profile/', {
+        fetch('/sudokuGenerate', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
+            body: JSON.stringify({ clues: clues })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Received response:', response);
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
-                // Redirect to home page after successful deletion
-                window.location.href = '/';
-            } else {
-                alert('Failed to delete profile. Please try again.');
+            console.log('Received data:', data);
+            if (data.puzzle && data.solution) {
+                gameBoard = data.puzzle;
+                solutionBoard = data.solution;
+                renderBoard(gameBoard);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the profile.');
+            console.error('Error fetching sudoku:', error);
         });
     }
-}
-
-function logoutUser() {
-    window.location.href = "{% url 'logout' %}";
-}
-
-// JavaScript for toggling the sidebar  
-    const hamburger = document.getElementById('ham');  
-    const sidebar = document.getElementById('sidebar');  
-
-    hamburger.addEventListener('click', () => {  
-        sidebar.classList.toggle('active'); // Toggle the active class  
-    });  
     
-    document.addEventListener('click', (event) => {  
-            const isClickInside = sidebar.contains(event.target) || hamburger.contains(event.target);  
-            if (!isClickInside) {  
-                sidebar.classList.remove('active'); // Hide the sidebar  
-            }  
-        });
+    function highlightRelatedCells(cell) {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(c => c.classList.remove('highlighted'));
         
-        // Grid functionality
-let selectedCell = null;
-let gameBoard = Array(9).fill().map(() => Array(9).fill(0));
-
-// Initialize the grid
-function initializeGrid() {
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach((cell, index) => {
-        cell.setAttribute('tabindex', '0');
-        cell.addEventListener('click', () => selectCell(cell));
-        cell.addEventListener('keydown', (e) => handleKeyInput(e, cell));
-    });
-}
-
-// Select a cell
-function selectCell(cell) {
-    // Remove previous selection
-    if (selectedCell) {
-        selectedCell.classList.remove('selected');
-    }
-    
-    selectedCell = cell;
-    cell.classList.add('selected');
-    
-    // Highlight related cells
-    highlightRelatedCells(cell);
-}
-
-// Handle number input from buttons
-function initializeNumberButtons() {
-    for (let i = 1; i <= 9; i++) {
-        const button = document.querySelector(`.rectangle${i}`);
-        button.addEventListener('click', () => {
-            if (selectedCell) {
-                enterNumber(i);
+        const index = [...cell.parentNode.children].indexOf(cell);
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+        const boxStartRow = Math.floor(row / 3) * 3;
+        const boxStartCol = Math.floor(col / 3) * 3;
+        
+        cells.forEach((c, i) => {
+            const currentRow = Math.floor(i / 9);
+            const currentCol = i % 9;
+            
+            if (currentRow === row || currentCol === col || 
+                (currentRow >= boxStartRow && currentRow < boxStartRow + 3 &&
+                 currentCol >= boxStartCol && currentCol < boxStartCol + 3)) {
+                c.classList.add('highlighted');
             }
         });
     }
-}
-
-// Enter number in selected cell
-function enterNumber(num) {
-    if (selectedCell) {
-        const row = Math.floor([...selectedCell.parentNode.children].indexOf(selectedCell) / 9);
-        const col = [...selectedCell.parentNode.children].indexOf(selectedCell) % 9;
+    
+    function isPuzzleComplete() {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (gameBoard[row][col] !== solutionBoard[row][col]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    function handlePuzzleCompletion() {
+        // Calculate score based on time
+        const timeSpent = document.getElementById('timer_val').textContent;
+        const score = calculateScore(timeSpent);
         
-        if (isValidMove(row, col, num)) {
-            selectedCell.textContent = num;
-            gameBoard[row][col] = num;
-            
-            // Add animation
-            selectedCell.style.animation = 'numberEnter 0.3s ease';
-            setTimeout(() => {
-                selectedCell.style.animation = '';
-            }, 300);
-        } else {
-            // Shake animation for invalid move
-            selectedCell.style.animation = 'invalidMove 0.3s ease';
-            setTimeout(() => {
-                selectedCell.style.animation = '';
-            }, 300);
-        }
-    }
-}
-
-// Handle keyboard input
-function handleKeyInput(e, cell) {
-    const key = e.key;
-    if (key >= '1' && key <= '9') {
-        selectCell(cell);
-        enterNumber(parseInt(key));
-    } else if (key === 'Backspace' || key === 'Delete') {
-        if (selectedCell) {
-            selectedCell.textContent = '';
-            const row = Math.floor([...cell.parentNode.children].indexOf(cell) / 9);
-            const col = [...cell.parentNode.children].indexOf(cell) % 9;
-            gameBoard[row][col] = 0;
-        }
-    }
-}
-
-// Highlight related cells
-function highlightRelatedCells(cell) {
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach(c => c.classList.remove('highlighted'));
-    
-    const index = [...cell.parentNode.children].indexOf(cell);
-    const row = Math.floor(index / 9);
-    const col = index % 9;
-    const boxStartRow = Math.floor(row / 3) * 3;
-    const boxStartCol = Math.floor(col / 3) * 3;
-    
-    cells.forEach((c, i) => {
-        const currentRow = Math.floor(i / 9);
-        const currentCol = i % 9;
+        // Update score display
+        document.getElementById('score_val').textContent = score;
         
-        if (currentRow === row || currentCol === col || 
-            (currentRow >= boxStartRow && currentRow < boxStartRow + 3 &&
-             currentCol >= boxStartCol && currentCol < boxStartCol + 3)) {
-            c.classList.add('highlighted');
-        }
-    });
-    
-    // Ensure the originally selected cell remains distinctly highlighted
-    cell.classList.add('selected');
-}
-// Check if move is valid
-function isValidMove(row, col, num) {
-    // Check row
-    for (let i = 0; i < 9; i++) {
-        if (gameBoard[row][i] === num) return false;
+        // Show completion message
+        alert(`Congratulations! You completed the puzzle!\nScore: ${score}`);
     }
     
-    // Check column
-    for (let i = 0; i < 9; i++) {
-        if (gameBoard[i][col] === num) return false;
-    }
-    
-    // Check 3x3 box
-    const boxRow = Math.floor(row / 3) * 3;
-    const boxCol = Math.floor(col / 3) * 3;
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            if (gameBoard[boxRow + i][boxCol + j] === num) return false;
-        }
-    }
-    
-    return true;
-}
-
-// Initialize the game
-document.addEventListener('DOMContentLoaded', () => {
-    initializeGrid();
-    initializeNumberButtons();
-});
-
-// Add these styles to your CSS
-const styles = document.createElement('style');
-styles.textContent = `
-    @keyframes numberEnter {
-        0% { transform: scale(1.2); }
-        100% { transform: scale(1); }
-    }
-    
-    @keyframes invalidMove {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-    }
-`;
-document.head.appendChild(styles);
-
-// Add this to your existing JavaScript
-document.addEventListener('click', (event) => {
-    // Check if the click is outside the grid and number buttons
-    const sudokuGrid = document.querySelector('.sudoku-grid');
-    const numberButtons = document.querySelector('.buttons');
-    
-    if (!sudokuGrid.contains(event.target) && !numberButtons.contains(event.target)) {
-        // Remove selection and highlights
-        if (selectedCell) {
-            selectedCell.classList.remove('selected');
-            selectedCell = null;
-        }
+    function calculateScore(timeSpent) {
+        // Convert time to seconds
+        const [minutes, seconds] = timeSpent.split(':').map(Number);
+        const totalSeconds = minutes * 60 + seconds;
         
-        // Remove all highlights
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach(cell => {
-            cell.classList.remove('highlighted');
+        // Base score calculation
+        let score = Math.max(1000 - totalSeconds, 0);
+        
+        return Math.round(score);
+    }
+    
+    // Keep user profile JavaScript if it exists
+    const userProfile = document.getElementById('userProfile');
+    if (userProfile) {
+        userProfile.classList.add('authenticated');
+        
+        userProfile.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userProfile.classList.toggle('expanded');
+        });
+    
+        document.addEventListener('click', (event) => {
+            if (!userProfile.contains(event.target)) {
+                userProfile.classList.remove('expanded');
+            }
         });
     }
-})
+    
+    // Keep sidebar JavaScript
+    const hamburger = document.getElementById('ham');
+    const sidebar = document.getElementById('sidebar');
+    
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', (event) => {
+        const isClickInside = sidebar.contains(event.target) || hamburger.contains(event.target);
+        if (!isClickInside) {
+            sidebar.classList.remove('active');
+        }
+    });
+
+    // ✅ Event listener for number buttons
+document.addEventListener("DOMContentLoaded", () => {
+    for (let i = 1; i <= 9; i++) {
+        document.querySelector(`.rectangle${i}`)?.addEventListener("click", () => enterNumber(i));
+    }
+});
     </script>
 </body>
 

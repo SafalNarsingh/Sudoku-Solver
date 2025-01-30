@@ -5,6 +5,8 @@
   font-family: "Caveat Brush", serif;
 }
 
+
+
 body {
   min-height: 100vh;
   display: flex;
@@ -140,29 +142,53 @@ nav {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.initial-number {
+  font-weight: bold;
+  color: #333;
+  background-color: #f0f0f0;
+}
+
+.correct-number {
+  color: #2c5282;
+}
+
 .cell {
-  background-color: #fff;
+  background-color: #141414;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: clamp(1rem, 2vw, 1.5rem);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.1s;
+  /*transition: all 0.1s;*/
+  transition: background-color 0.3s ease;
+  user-select: none;
 }
+
+@keyframes numberEnter {
+  0% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes invalidMove {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
 
 /* Cell Styles */
 .cell:focus {
   outline: none;
-  background-color: #ffedc8;
+  background-color: #c0b193;
 }
 
 .cell.selected {
-  background-color: #ffad3a;
+  background-color: #f6e4ca;
 }
 
 .cell.highlighted {
-  background-color: #fdd194;
+  background-color: #adae66;
 }
 
 /* 3x3 Box Borders */

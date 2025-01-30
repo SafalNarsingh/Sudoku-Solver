@@ -156,23 +156,24 @@ def grid_view(request):
 def solver_view(request):
     return render(request, 'Sudoku/solver.html')
 
+@csrf_exempt
 def sudokuGenerate(request):
     if request.method == 'POST':
         try:
             body = json.loads(request.body)
-            clues = body.get('clues')  # Default to 36 if not provided, but should now use sent value
+            clues = body.get('clues',30)  # Default to 36 if not provided, but should now use sent value
             
             print(f"Received clues: {clues}")  # Debug print
             
             # base_grid = generate_base_grid()
             # shuffled_grid = shuffle_grid(base_grid)
-            sudoku_puzzle = generate_sudoku(clues)
+            sudoku_puzzle, solution = generate_sudoku(clues)
             
             print(f"Generated puzzle with {clues} clues:")
             for row in sudoku_puzzle:
                 print(row)
             
-            return JsonResponse({'puzzle': sudoku_puzzle})
+            return JsonResponse({'puzzle': sudoku_puzzle,'solution': solution})
         except Exception as e:
             print(f"Error generating sudoku: {e}")
             return JsonResponse({'error': str(e)}, status=400)

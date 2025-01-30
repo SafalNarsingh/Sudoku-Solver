@@ -72,7 +72,7 @@ def generate_sudoku(difficulty=30):
     grid = [[0 for _ in range(9)] for _ in range(9)]  
     
     # Solve the empty grid  
-    solve_sudoku(grid)  
+    solution = solve_sudoku(grid)  
     
     # Randomize positions for removal  
     positions = [(row, col) for row in range(9) for col in range(9)]  
@@ -99,7 +99,7 @@ def generate_sudoku(difficulty=30):
         else:  
             removed += 1  
     
-    return puzzle  
+    return puzzle, solution
 
 # Generate and print a Sudoku puzzle  
 def print_sudoku(grid):  
