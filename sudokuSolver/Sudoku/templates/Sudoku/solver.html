@@ -51,29 +51,30 @@
         <button id = "ham" class="ham"><img id="ham" src="{% static 'Sudoku/images/ham1.png' %}" alt="" srcset=""></button>
     </div>
     <div class ="sidebar" id = "sidebar">
-    <nav>
-        <div class="top">
-
-            <div class="menu">
-                <div class="hamburger">
-                    <img id="hamburger" src="{% static 'Sudoku/images/menu.svg' %}" alt="" srcset="">
+        <nav>
+            <div class="top">
+    
+                <div class="menu">
+                    <div class="hamburger">
+                        <img id="hamburger" src="{% static 'Sudoku/images/menu.svg' %}" alt="" srcset="">
+                    </div>
+                    <div class="homeicon">
+                        <a href="{%url 'home'%}">
+                        <img id="homeicon" src="{% static 'Sudoku/images/home.svg' %}" alt="" srcset="">
+                        </a>
+                    </div>
                 </div>
-                <div class="homeicon">
-                    <a href="{%url 'home'%}">
-                    <img id="homeicon" src="{% static 'Sudoku/images/home.svg' %}" alt="" srcset="">
-                    </a>
-                </div>
-            </div>
-
-            <div class="Play" id="playbutton" onclick="navigateToLevel()">  
-                <img src="{% static 'Sudoku/images/joy.svg' %}" alt="" srcset="">  
-                <p>Play</p>  
-            </div>  
-            
-            <div class="Play" id="solverbutton" onclick="navigateToSolver()">  
-                <img src="{% static 'Sudoku/images/cube.svg' %}" alt="" srcset="">  
-                <p>Solver</p>  
-            </div>  
+    
+                <div class="Play" id="playbutton">  
+                    <img src="{% static 'Sudoku/images/joy.svg' %}" alt="" srcset="">  
+                    <p>Play</p>  
+                </div>  
+                
+                <div class="Play" id="solverbutton" onclick="navigateToSolver()">  
+                    <img src="{% static 'Sudoku/images/cube.svg' %}" alt="" srcset="">  
+                    <p>Solver</p>  
+                </div>  
+                
             
             <script>  
 
@@ -537,7 +538,7 @@
                     </div>
                 </div>
                 <div class="timing-item">
-                    <div class="algorithm-name">Backtracking</div>
+                    <div class="algorithm-name">Backtrack</div>
                     <div>
                         <span class="time-value">${backtrackTime}</span>
                         <span class="time-unit">ms</span>
