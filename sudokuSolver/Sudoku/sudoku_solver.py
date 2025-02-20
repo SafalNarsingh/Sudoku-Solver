@@ -1,6 +1,7 @@
 from copy import deepcopy
 import time
-
+from .heuristicSolver2 import solve_with_performance_tracking
+from .recursiveBacktracking import solve_sudoku_backtracking
 def solve_with_comparison(board):
     """Compare both solving methods on identical boards"""
     # Create deep copies of the board for each solver
@@ -9,12 +10,12 @@ def solve_with_comparison(board):
     
     # Run heuristic solver
     start_time = time.time()
-    heuristic_success = solve_with_optimized_heuristic(board_heuristic)
+    heuristic_success = solve_with_performance_tracking(board_heuristic)
     heuristic_time = (time.time() - start_time) * 1000
     
     # Run backtracking solver
     start_time = time.time()
-    backtrack_success = solve_backtracking(board_backtrack)
+    backtrack_success = solve_sudoku_backtracking(board_backtrack)
     backtrack_time = (time.time() - start_time) * 1000
     
     # Use the heuristic solution if both were successful
@@ -25,11 +26,11 @@ def solve_with_comparison(board):
     
     return (heuristic_success and backtrack_success), board_heuristic, heuristic_time, backtrack_time
 
-def solve_with_optimized_heuristic(board):
+# def solve_with_optimized_heuristic(board):
     possibilities = initialize_possibilities(board)
     return solve_heuristic_recursive(board, possibilities)
 
-def solve_heuristic_recursive(board, possibilities):
+# def solve_heuristic_recursive(board, possibilities):
     row, col, possible_values = find_most_constrained_cell(possibilities)
     
     if row == -1:  # No empty cells left
@@ -60,7 +61,7 @@ def solve_heuristic_recursive(board, possibilities):
     
     return False
 
-def solve_backtracking(board):
+# def solve_backtracking(board):
     empty = find_empty(board)
     if not empty:
         return True
@@ -76,14 +77,14 @@ def solve_backtracking(board):
     return False
 
 # Helper functions
-def find_empty(board):
+# def find_empty(board):
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
                 return (i, j)
     return None
 
-def is_valid(board, row, col, num):
+# def is_valid(board, row, col, num):
     # Check row
     if num in board[row]:
         return False
@@ -101,7 +102,7 @@ def is_valid(board, row, col, num):
                 
     return True
 
-def get_affected_cells(row, col):
+# def get_affected_cells(row, col):
     affected = set()
     
     # Add row cells
@@ -123,7 +124,7 @@ def get_affected_cells(row, col):
                 
     return affected
 
-def initialize_possibilities(board):
+# def initialize_possibilities(board):
     possibilities = {}
     
     # Initialize empty cells with all possibilities
@@ -144,7 +145,7 @@ def initialize_possibilities(board):
     
     return possibilities
 
-def find_most_constrained_cell(possibilities):
+# def find_most_constrained_cell(possibilities):
     if not possibilities:
         return -1, -1, []
         

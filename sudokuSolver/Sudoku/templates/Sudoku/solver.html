@@ -106,10 +106,10 @@
                 <p class="username">{{ username|default:user.username }}</p> </p>
             </div>
             <div class="profile-content">
-                <div class="score-display">
+                <!-- <div class="score-display">
                     <p class="score-label">Highest Score</p>
                     <p class="score-value">{{ high_score|default:0 }}</p>
-                </div>
+                </div> -->
                 <div class="dropdown-item" onclick="changeUsername()">
                     <img src="{% static 'Sudoku/images/change.png' %}" alt="Edit" width="16" height="16">
                     Change Username
@@ -272,7 +272,7 @@
 </div>
 <div class="clear_mobile">
     <img src="{% static 'Sudoku/images/clear.svg' %}" alt="undo">
-    <p id = "notes">clear All</p>
+    <p id = "notes">Clear All</p>
     
 </div>
 <div class="solve_mobile">
@@ -520,6 +520,7 @@
         }
     }
 
+    
 
       // Update the dialog div to show timing results
       // Update the dialog div with the new styled timing results
@@ -548,6 +549,52 @@
             <p id="solve">Unsolve</p>
         </div>
     `;
+
+
+    // Update mobile solve button
+    const solveMobileDiv = document.querySelector('.solve_mobile');
+    solveMobileDiv.classList.add('expanded');
+    solveMobileDiv.innerHTML = `
+        
+        <p id="Solve">Unsolve</p>
+        <div class="mobile-result-times">
+            <h3 class="mobile-result-header">Solution Analysis</h3>
+            <div class="mobile-timing-grid">
+                <div class="mobile-timing-item">
+                    <div class="mobile-algorithm-name">Heuristic</div>
+                    <div>
+                        <span class="mobile-time-value">${heuristicTime}</span>
+                        <span class="mobile-time-unit">ms</span>
+                    </div>
+                </div>
+                <div class="mobile-timing-item">
+                    <div class="mobile-algorithm-name">Backtracking</div>
+                    <div>
+                        <span class="mobile-time-value">${backtrackTime}</span>
+                        <span class="mobile-time-unit">ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    `;
+    
+    // Update solve button event listener for mobile
+    const solveMobileButton = document.getElementById('Solve');
+    if (solveMobileButton) {
+        solveMobileButton.addEventListener('click', () => {
+            removeSolvedValues();
+            solveMobileDiv.classList.remove('expanded');
+            solveMobileDiv.innerHTML = `<p id="Solve">Solve</p>`;
+            
+            // Reattach the solve button event listener
+            const newSolveMobileButton = document.getElementById('Solve');
+            if (newSolveMobileButton) {
+                newSolveMobileButton.addEventListener('click', solveSudoku);
+            }
+        });
+    }
+    
     const unsolveButton = dialogueDiv.querySelector('.smallrectangle');
     unsolveButton.addEventListener('click', () => {
         // Remove only solved values
@@ -567,6 +614,8 @@
         }
     });
 }
+
+
 function removeSolvedValues() {
     const cells = document.querySelectorAll('.sudoku-grid .cell');
     cells.forEach((cell, index) => {
@@ -636,11 +685,20 @@ function clearSolverGrid() {
             if (solveButton) {
                 solveButton.addEventListener('click', solveSudoku);
             }
+
+            const solveButton1 = document.getElementById('Solve');
+            if (solveButton1) {
+                solveButton1.addEventListener('click', solveSudoku);
+            }
         
             // Set up clear button listener
             const clearButton = document.querySelector('.option-img1');
             if (clearButton) {
                 clearButton.addEventListener('click', clearSolverGrid);
+            }
+            const clearButton1 = document.querySelector('.clear_mobile');
+            if (clearButton1) {
+                clearButton1.addEventListener('click', clearSolverGrid);
             }
         
             // Handle clicks outside grid

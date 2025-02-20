@@ -75,10 +75,10 @@
                 <p class="username">{{ username|default:user.username }}</p> </p>
             </div>
             <div class="profile-content">
-                <div class="score-display">
+                <!-- <div class="score-display">
                     <p class="score-label">Highest Score</p>
                     <p class="score-value">{{ high_score|default:0 }}</p>
-                </div>
+                </div> -->
                 <div class="dropdown-item" onclick="changeUsername()">
                     <img src="{% static 'Sudoku/images/change.png' %}" alt="Edit" width="16" height="16">
                     Change Username
