@@ -274,21 +274,52 @@ nav {
 
 
 @media (max-width: 768px) {
-  nav {
-      min-width: 60px;
-  }
-  
-  .Play p, .Solver p, .help p {
-      display: none;
-  }
-  
-  .Play, .Solver, .help {
-      justify-content: center;
-  }
-  
-  .screen {
-      margin-left: 60px;
-  }
+   /* Navigation Menu */
+   .Play, .Solver, .help {
+    font-size: 1.4rem;
+}
+
+/* Cell Size and Font */
+.cell {
+    font-size: 1.8rem;
+}
+
+/* Hamburger Menu */
+.ham {
+    left: 20px;
+    top: 20px;
+}
+
+.ham img {
+    width: 22px;
+    height: 18px;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 180px;
+}
+
+/* Menu Icons */
+.menu img {
+    height: 35px;
+    width: 35px;
+}
+
+.Play img, .Solver img {
+    height: 40px;
+    width: 40px;
+}
+
+.help img {
+    height: 30px;
+    width: 30px;
+}
+.rectangle {
+  width: 80%;
+  flex-direction: column;
+  gap: 10px;
+}
 }
 
 @media (max-width: 576px) {
@@ -389,6 +420,9 @@ nav {
   .Submit {
       padding: 0.4rem 0.8rem;
       font-size: 1rem;
+      width: 70px;
+      height: 27px;
+      align-items: center;
   }
 }
 
@@ -401,6 +435,8 @@ nav {
   .profile {
       width: 80px;
       height: 80px;
+      
   }
+
 }
 
