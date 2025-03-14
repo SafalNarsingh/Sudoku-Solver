@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-#b31vjse*0n7+4k00t954fo+)7i2d%2o1*b_xj65(4p-ljpd(i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.vercel.app']
+ALLOWED_HOSTS = ['.vercel.app','127.0.0.1']
 
 
 # Application definition
@@ -123,6 +123,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 
     "Sudoku/static/Sudoku",
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
