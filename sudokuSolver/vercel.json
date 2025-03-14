@@ -10,8 +10,8 @@
         }],
     "routes": [
         {
-            "src": "/sudokuSolver/(.*)",
-            "dest": "/sudokuSolver/wsgi.py"
+            "src": "/(.*)",
+            "dest": "sudokuSolver/wsgi.py"
         }
     ]
 }
