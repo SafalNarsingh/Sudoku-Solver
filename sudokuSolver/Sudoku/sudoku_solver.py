@@ -1,7 +1,7 @@
 from copy import deepcopy
 import time
 from .heuristicSolver2 import solve_with_performance_tracking
-from .recursiveBacktracking import solve_sudoku_backtracking
+from .recursiveBacktracking import solve_backtracking
 def solve_with_comparison(board):
     """Compare both solving methods on identical boards"""
     # Create deep copies of the board for each solver
@@ -15,7 +15,7 @@ def solve_with_comparison(board):
     
     # Run backtracking solver
     start_time = time.time()
-    backtrack_success = solve_sudoku_backtracking(board_backtrack)
+    backtrack_success = solve_backtracking(board_backtrack)
     backtrack_time = (time.time() - start_time) * 1000
     
     # Use the heuristic solution if both were successful
