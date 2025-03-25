@@ -5,7 +5,6 @@ This project aims to serve as a learning tool to help users understand and analy
 
 ![SudokuSolver](https://github.com/SafalNarsingh/Sudoku-Solver/blob/0170b80f32815371ea2d7260fc5cb594e9cb1795/imgs/Homepage.png)
 
-#
 
 ## Table of Contents  
 
@@ -19,7 +18,6 @@ This project aims to serve as a learning tool to help users understand and analy
 7. [Contributors](#contributors)  
 8. [To-Do List](#to-do-list)  
 
-#
 
 ## Screenshots
 
@@ -37,7 +35,6 @@ This project aims to serve as a learning tool to help users understand and analy
 
 ![Profile](https://github.com/SafalNarsingh/Sudoku-Solver/blob/e94815614de0827b1f1f7808198d8dfc86f4a193/imgs/profile.png)
 
-#
 
 ## Features
 
@@ -83,10 +80,9 @@ For instance, below you can view the example of the web application opened throu
     <img src="https://github.com/SafalNarsingh/Sudoku-Solver/blob/8da06b1f1bc090e0f396f061847d6c4f559d7096/imgs/home_mobile.jpg" alt="Home_Mobile" style="width: 24%;">  
     <img src="https://github.com/SafalNarsingh/Sudoku-Solver/blob/8da06b1f1bc090e0f396f061847d6c4f559d7096/imgs/level_mobile.jpg" alt="Level_Mobile" style="width: 24%;">  
     <img src="https://github.com/SafalNarsingh/Sudoku-Solver/blob/8da06b1f1bc090e0f396f061847d6c4f559d7096/imgs/solver_mobile.jpg" alt="Solver_Mobile" style="width: 24%;">  
-    <img src="https://github.com/SafalNarsingh/Sudoku-Solver/blob/8da06b1f1bc090e0f396f061847d6c4f559d7096/imgs/solved_mobile.jpgg" alt="Solved_Mobile" style="width: 24%;">  
+    <img src="https://github.com/SafalNarsingh/Sudoku-Solver/blob/8da06b1f1bc090e0f396f061847d6c4f559d7096/imgs/solved_mobile.jpg" alt="Solved_Mobile" style="width: 24%;">  
 </div>  
 
-#
 
 ## Usage/Examples
 
@@ -103,7 +99,6 @@ For instance, below you can view the example of the web application opened throu
 - Click "Solve", and the app will display the solution instantly along with time analysis of backtracking and heuristic algorithm.
 
 
-#
 
 ## Algorithms
 
@@ -115,7 +110,6 @@ The Heuristic Algorithm applies intelligent rule-based techniques to solve Sudok
 
 By combining these two approaches, the Sudoku solver in this project allows for performance comparison, measuring execution times for both methods to determine which one is more efficient for a given puzzle.
 
-#
 
 ## Dependencies
 The project relies on the following dependencies:
@@ -125,7 +119,6 @@ The project relies on the following dependencies:
 - JSON Processing (for game state storage and retrieval)
 - HTML, CSS, JavaScript (for UI and interactivity)
 
-#
 
 ## Installation
 
@@ -151,7 +144,6 @@ Alternatively,
 You can run the web app using the following link:
 https://solversudoku.vercel.app/
 
-#
 
 ## Troubleshooting
 ### ❗ Login Issues
