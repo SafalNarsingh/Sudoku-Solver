@@ -183,6 +183,6 @@ If no solution is found, verify that the puzzle is valid and solvable.
 - Safal Narshing Shrestha <br>
 - Dinisha Uprety <br>
 
-> Last updated by Safal Narshing Shrestha on March 25, 2025, 17:24. </br> Copyright © 2025 Apekshya Bhattarai, Salina Nakarmni, Pooja Pathak, Safal Narshing Shrestha, Dinisha Uprety. All rights reserved.
+> Last updated by Safal Narshing Shrestha on March 25, 2025, 17:38. </br> Copyright © 2025 Apekshya Bhattarai, Salina Nakarmni, Pooja Pathak, Safal Narshing Shrestha, Dinisha Uprety. All rights reserved.
 
 ##
