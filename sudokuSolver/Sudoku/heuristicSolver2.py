@@ -90,6 +90,24 @@ def find_most_constrained_cell(possibilities: Dict[Tuple[int, int], Set[int]]) -
             
     return best_cell[0], best_cell[1], list(best_values)  
 
+
+def is_valid_move(board: List[List[int]], row: int, col: int, num: int) -> bool:  
+    """Check if a move is valid"""  
+    # Check row and column  
+    for x in range(9):  
+        if board[row][x] == num or board[x][col] == num:  
+            return False  
+    
+    # Check 3x3 box  
+    start_row, start_col = 3 * (row // 3), 3 * (col // 3)  
+    for i in range(3):  
+        for j in range(3):  
+            if board[start_row + i][start_col + j] == num:  
+                return False  
+    
+    return True  
+
+
 def solve_sudoku(board: List[List[int]],   
                  time_limit: float = 5.0,   
                  use_randomization: bool = True) -> Dict:  
@@ -114,65 +132,57 @@ def solve_sudoku(board: List[List[int]],
         'error': None  
     }  
     
-    def is_valid_move(board: List[List[int]], row: int, col: int, num: int) -> bool:  
-        """Check if a move is valid"""  
-        # Check row and column  
-        for x in range(9):  
-            if board[row][x] == num or board[x][col] == num:  
-                return False  
-        
-        # Check 3x3 box  
-        start_row, start_col = 3 * (row // 3), 3 * (col // 3)  
-        for i in range(3):  
-            for j in range(3):  
-                if board[start_row + i][start_col + j] == num:  
-                    return False  
-        
-        return True  
-    
-    def backtrack_solve(board: List[List[int]]) -> bool:  
-        """Recursive backtracking solver"""  
+    def backtrack_solve_with_heuristics(board: List[List[int]], possibilities: Dict[Tuple[int, int], Set[int]]) -> bool:  
+        """Recursive backtracking solver using heuristics"""  
         # Check time limit  
         if time.time() - start_time > time_limit:  
             return False  
         
-        # Find empty cell  
-        empty = None  
-        for r in range(9):  
-            for c in range(9):  
-                if board[r][c] == 0:  
-                    empty = (r, c)  
-                    break  
-            if empty:  
-                break  
+        # Find most constrained cell using heuristic
+        row, col, values = find_most_constrained_cell(possibilities)
         
         # If no empty cell, puzzle is solved  
-        if not empty:  
+        if row == -1 and col == -1:  
             results['solved'] = True  
             results['solution'] = [row[:] for row in board]  
             return True  
         
-        row, col = empty  
-        
-        # Determine possible values  
-        values = list(range(1, 10))  
+        # Randomize values if enabled
         if use_randomization:  
             random.shuffle(values)  
         
-        for num in values:  
-            if is_valid_move(board, row, col, num):  
-                board[row][col] = num  
-                
-                if backtrack_solve(board):  
-                    return True  
-                
-                board[row][col] = 0  
+        # Create a copy of the possibilities for backtracking
+        cell_coord = (row, col)
         
+        # Try each possible value
+        for num in values:
+            if is_valid_move(board, row, col, num):
+                board[row][col] = num
+                
+                # Remove this cell from possibilities and update affected cells
+                updated_possibilities = copy.deepcopy(possibilities)
+                del updated_possibilities[cell_coord]
+                
+                # Update possibilities for affected cells
+                for r, c in get_affected_cells(row, col):
+                    if (r, c) in updated_possibilities:
+                        updated_possibilities[(r, c)].discard(num)
+                
+                if backtrack_solve_with_heuristics(board, updated_possibilities):
+                    return True
+                
+                board[row][col] = 0  # Backtrack
+        
+        # No valid value found, add cell back to possibilities
+        possibilities[cell_coord] = set(values)
         return False  
     
     try:  
-        # Attempt to solve  
-        backtrack_solve(board)  
+        # Initialize possibilities for all empty cells
+        initial_possibilities = initialize_possibilities(board)
+        
+        # Attempt to solve using heuristics
+        backtrack_solve_with_heuristics(board, initial_possibilities)
     except Exception as e:  
         results['error'] = str(e)  
     finally:  
