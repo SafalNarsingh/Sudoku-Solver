@@ -1,5 +1,6 @@
 import time  
 import random  
+import copy
 from typing import List, Dict, Set, Tuple  
 
 def get_affected_cells(row: int, col: int) -> Set[Tuple[int, int]]:  
