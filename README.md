@@ -167,7 +167,7 @@ If no solution is found, verify that the puzzle is valid and solvable.
 
 ## To-Do List
 
-
+- [ ] Add hints option, providing upto around 3 hints, to the player if stuck during a level
 - [ ] Enhance play page for mobile rendering 
 - [ ] Fix the save game state function (not working currently)
 - [ ] Add real-time multiplayer Sudoku.
