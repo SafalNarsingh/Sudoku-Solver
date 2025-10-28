@@ -8,10 +8,14 @@ def solve_with_comparison(board):
     board_heuristic = deepcopy(board)
     board_backtrack = deepcopy(board)
     
-    # Run heuristic solver
+    # Run heuristic solver (returns a dict with keys like 'solved' and 'solution')
     start_time = time.time()
-    heuristic_success = solve_with_performance_tracking(board_heuristic)
-    heuristic_time = (time.time() - start_time) * 1000
+    heuristic_result = solve_with_performance_tracking(board_heuristic)
+    # normalize result
+    heuristic_success = bool(heuristic_result.get('solved', False)) if isinstance(heuristic_result, dict) else bool(heuristic_result)
+    # prefer solver-provided timing/solution when available
+    heuristic_time = (heuristic_result.get('time_taken', time.time() - start_time) if isinstance(heuristic_result, dict) else (time.time() - start_time)) * 1000
+    heuristic_solution = heuristic_result.get('solution', board_heuristic) if isinstance(heuristic_result, dict) else board_heuristic
     
     # Run backtracking solver
     start_time = time.time()
@@ -19,12 +23,12 @@ def solve_with_comparison(board):
     backtrack_time = (time.time() - start_time) * 1000
     
     # Use the heuristic solution if both were successful
+    final_solution = board_heuristic
     if heuristic_success and backtrack_success:
-        for i in range(9):
-            for j in range(9):
-                board[i][j] = board_heuristic[i][j]
-    
-    return (heuristic_success and backtrack_success), board_heuristic, heuristic_time, backtrack_time
+        # prefer explicit solution returned by heuristic solver when present
+        final_solution = heuristic_solution
+
+    return (heuristic_success and backtrack_success), final_solution, heuristic_time, backtrack_time
 
 # def solve_with_optimized_heuristic(board):
     possibilities = initialize_possibilities(board)
