@@ -1,200 +1,213 @@
+import time  
+import random  
 import copy
-import random
-from typing import List, Tuple, Dict, Set, Optional
+from typing import List, Dict, Set, Tuple  
 
-# Type aliases for clarity
-Board = List[List[int]]
-Possibilities = Dict[Tuple[int, int], Set[int]]
+def get_affected_cells(row: int, col: int) -> Set[Tuple[int, int]]:  
+    """  
+    Returns set of cells that would be affected by placing a number at (row, col)  
+    
+    Args:  
+        row (int): Row index  
+        col (int): Column index  
+    
+    Returns:  
+        Set of affected cell coordinates  
+    """  
+    affected = set()  
+    
+    # Same row  
+    for c in range(9):  
+        if c != col:  
+            affected.add((row, c))  
+    
+    # Same column  
+    for r in range(9):  
+        if r != row:  
+            affected.add((r, col))  
+    
+    # Same 3x3 box  
+    box_row, box_col = 3 * (row // 3), 3 * (col // 3)  
+    for r in range(box_row, box_row + 3):  
+        for c in range(box_col, box_col + 3):  
+            if (r, c) != (row, col):  
+                affected.add((r, c))  
+                
+    return affected  
 
-class SudokuHeuristicSolver:
-    def __init__(self, use_randomization: bool = False):
-        """
-        Initialize the heuristic Sudoku solver.
+def initialize_possibilities(board: List[List[int]]) -> Dict[Tuple[int, int], Set[int]]:  
+    """  
+    Create initial dictionary of possibilities for all empty cells  
+    
+    Args:  
+        board (List[List[int]]): 9x9 Sudoku grid  
+    
+    Returns:  
+        Dictionary of cell coordinates and possible values  
+    """  
+    possibilities = {}  
+    
+    # Set all empty cells to have all possibilities  
+    for row in range(9):  
+        for col in range(9):  
+            if board[row][col] == 0:  
+                possibilities[(row, col)] = set(range(1, 10))  
+    
+    # Remove possibilities based on existing numbers  
+    for row in range(9):  
+        for col in range(9):  
+            if board[row][col] != 0:  
+                value = board[row][col]  
+                # Remove this value from all affected cells  
+                for r, c in get_affected_cells(row, col):  
+                    if (r, c) in possibilities:  
+                        possibilities[(r, c)].discard(value)  
+    
+    return possibilities  
+
+def find_most_constrained_cell(possibilities: Dict[Tuple[int, int], Set[int]]) -> Tuple[int, int, List[int]]:  
+    """  
+    Find the empty cell with fewest possible values  
+    
+    Args:  
+        possibilities (Dict): Dictionary of cell possibilities  
+    
+    Returns:  
+        Tuple containing row, column, and possible values  
+    """  
+    if not possibilities:  # If no empty cells left  
+        return -1, -1, []  
         
-        Args:
-            use_randomization: If True, shuffle candidate values (simulates LCV randomness)
-        """
-        self.use_randomization = use_randomization
-        self.solved = False
-        self.solution: Optional[Board] = None
-
-    def solve(self, board: Board) -> Tuple[bool, Optional[Board]]:
-        """
-        Solve the Sudoku puzzle using MRV + constraint propagation + backtracking.
-        
-        Args:
-            board: 9x9 grid with 0s for empty cells
+    # Find cell with minimum number of possibilities  
+    min_possibilities = 10  
+    best_cell = (-1, -1)  
+    best_values = []  
+    
+    for (row, col), possible_values in possibilities.items():  
+        if len(possible_values) < min_possibilities:  
+            min_possibilities = len(possible_values)  
+            best_cell = (row, col)  
+            best_values = possible_values  
             
-        Returns:
-            (solved: bool, solution: Board or None)
-        """
-        # Make a deep copy to avoid modifying input
-        board = copy.deepcopy(board)
-        
-        # Initialize possibilities for empty cells
-        possibilities = self._initialize_possibilities(board)
-        
-        # Start recursive solving
-        self.solved, self.solution = False, None
-        success = self.solve_with_performance_tracking(board, possibilities)
-        
-        return success, self.solution
+    return best_cell[0], best_cell[1], list(best_values)  
 
-    def _initialize_possibilities(self, board: Board) -> Possibilities:
-        """
-        Initialize possible values for each empty cell.
-        """
-        possibilities: Possibilities = {}
-        
-        # Initialize empty cells with {1..9}
-        for row in range(9):
-            for col in range(9):
-                if board[row][col] == 0:
-                    possibilities[(row, col)] = set(range(1, 10))
-        
-        # Remove values based on pre-filled cells
-        for row in range(9):
-            for col in range(9):
-                if board[row][col] != 0:
-                    value = board[row][col]
-                    affected = self._get_affected_cells(row, col)
-                    for r, c in affected:
-                        if (r, c) in possibilities:
-                            possibilities[(r, c)].discard(value)
-        
-        return possibilities
 
-    def _get_affected_cells(self, row: int, col: int) -> Set[Tuple[int, int]]:
-        """
-        Get all cells affected by placing a number at (row, col).
-        """
-        affected = set()
-        
-        # Same row
-        for c in range(9):
-            if c != col:
-                affected.add((row, c))
-        
-        # Same column
-        for r in range(9):
-            if r != row:
-                affected.add((r, col))
-        
-        # Same 3x3 box
-        box_row = 3 * (row // 3)
-        box_col = 3 * (col // 3)
-        for r in range(box_row, box_row + 3):
-            for c in range(box_col, box_col + 3):
-                if (r, c) != (row, col):
-                    affected.add((r, c))
-        
-        return affected
+def is_valid_move(board: List[List[int]], row: int, col: int, num: int) -> bool:  
+    """Check if a move is valid"""  
+    # Check row and column  
+    for x in range(9):  
+        if board[row][x] == num or board[x][col] == num:  
+            return False  
+    
+    # Check 3x3 box  
+    start_row, start_col = 3 * (row // 3), 3 * (col // 3)  
+    for i in range(3):  
+        for j in range(3):  
+            if board[start_row + i][start_col + j] == num:  
+                return False  
+    
+    return True  
 
-    def _is_valid_move(self, board: Board, row: int, col: int, num: int) -> bool:
-        """
-        Check if placing 'num' at (row, col) is valid.
-        """
-        # Check row
-        for x in range(9):
-            if board[row][x] == num:
-                return False
-        
-        # Check column
-        for x in range(9):
-            if board[x][col] == num:
-                return False
-        
-        # Check 3x3 box
-        box_row = 3 * (row // 3)
-        box_col = 3 * (col // 3)
-        for r in range(box_row, box_row + 3):
-            for c in range(box_col, box_col + 3):
-                if board[r][c] == num:
-                    return False
-        
-        return True
 
-    def _find_most_constrained_cell(self, possibilities: Possibilities) -> Tuple[int, int, List[int]]:
-        """
-        Find cell with Minimum Remaining Values (MRV).
-        Returns (-1, -1, []) if no empty cells.
-        """
-        if not possibilities:
-            return -1, -1, []
+def solve_sudoku(board: List[List[int]],   
+                 time_limit: float = 5.0,   
+                 use_randomization: bool = True) -> Dict:  
+    """  
+    Comprehensive Sudoku solving function  
+    
+    Args:  
+        board (List[List[int]]): 9x9 Sudoku grid  
+        time_limit (float): Maximum solving time in seconds  
+        use_randomization (bool): Enable value randomization  
+    
+    Returns:  
+        Dictionary with solving results  
+    """  
+    start_time = time.time()  
+    original_board = [row[:] for row in board]  
+    
+    results = {  
+        'solved': False,  
+        'solution': None,  
+        'time_taken': 0,  
+        'error': None  
+    }  
+    
+    def backtrack_solve_with_heuristics(board: List[List[int]], possibilities: Dict[Tuple[int, int], Set[int]]) -> bool:  
+        """Recursive backtracking solver using heuristics"""  
+        # Check time limit  
+        if time.time() - start_time > time_limit:  
+            return False  
         
-        min_count = 10
-        best_row, best_col = -1, -1
-        best_values: List[int] = []
+        # Find most constrained cell using heuristic
+        row, col, values = find_most_constrained_cell(possibilities)
         
-        for (row, col), values in possibilities.items():
-            count = len(values)
-            if count < min_count:
-                min_count = count
-                best_row, best_col = row, col
-                best_values = list(values)
+        # If no empty cell, puzzle is solved  
+        if row == -1 and col == -1:  
+            results['solved'] = True  
+            results['solution'] = [row[:] for row in board]  
+            return True  
         
-        return best_row, best_col, best_values
-
-    def solve_with_performance_tracking(self, board: Board, possibilities: Possibilities) -> bool:
-        """
-        Main recursive heuristic function with MRV and constraint propagation.
-        """
-        # Find most constrained cell
-        row, col, values = self._find_most_constrained_cell(possibilities)
+        # Randomize values if enabled
+        if use_randomization:  
+            random.shuffle(values)  
         
-        # If no empty cells, puzzle is solved
-        if row == -1 and col == -1:
-            self.solved = True
-            self.solution = copy.deepcopy(board)
-            return True
-        
-        # Optional: randomize value order (simulates LCV exploration)
-        if self.use_randomization:
-            random.shuffle(values)
-        
+        # Create a copy of the possibilities for backtracking
         cell_coord = (row, col)
         
         # Try each possible value
         for num in values:
-            if self._is_valid_move(board, row, col, num):
-                # Place the number
+            if is_valid_move(board, row, col, num):
                 board[row][col] = num
                 
-                # Make a deep copy of possibilities
-                updated_poss = copy.deepcopy(possibilities)
-                del updated_poss[cell_coord]
+                # Remove this cell from possibilities and update affected cells
+                updated_possibilities = copy.deepcopy(possibilities)
+                del updated_possibilities[cell_coord]
                 
-                # Propagate constraints
-                affected = self._get_affected_cells(row, col)
-                for r, c in affected:
-                    if (r, c) in updated_poss:
-                        updated_poss[(r, c)].discard(num)
-                        # Early failure detection: if any cell has no possibilities
-                        if not updated_poss[(r, c)]:
-                            board[row][col] = 0
-                            continue
+                # Update possibilities for affected cells
+                for r, c in get_affected_cells(row, col):
+                    if (r, c) in updated_possibilities:
+                        updated_possibilities[(r, c)].discard(num)
                 
-                # Recurse
-                if self.solve_with_performance_tracking(board, updated_poss):
+                if backtrack_solve_with_heuristics(board, updated_possibilities):
                     return True
                 
-                # Backtrack
-                board[row][col] = 0
+                board[row][col] = 0  # Backtrack
         
-        # Restore possibilities for this cell on failure
+        # No valid value found, add cell back to possibilities
         possibilities[cell_coord] = set(values)
-        return False
+        return False  
+    
+    try:  
+        # Initialize possibilities for all empty cells
+        initial_possibilities = initialize_possibilities(board)
+        
+        # Attempt to solve using heuristics
+        backtrack_solve_with_heuristics(board, initial_possibilities)
+    except Exception as e:  
+        results['error'] = str(e)  
+    finally:  
+        results['time_taken'] = time.time() - start_time  
+    
+    return results  
 
-
-# Helper function to print board
-def print_board(board: Board):
-    for i in range(9):
-        if i % 3 == 0 and i != 0:
-            print("-" * 21)
-        for j in range(9):
-            if j % 3 == 0 and j != 0:
-                print("| ", end="")
-            print(board[i][j] if board[i][j] != 0 else ".", end=" ")
-        print()
-    print()
-
+# Optional: Performance measurement wrapper  
+def solve_with_performance_tracking(board: List[List[int]]) -> Dict:  
+    """  
+    Wrapper function to track solving performance  
+    
+    Args:  
+        board (List[List[int]]): 9x9 Sudoku grid  
+    
+    Returns:  
+        Dictionary with detailed solving metrics  
+    """  
+    start_time = time.time()  
+    result = solve_sudoku(board)  
+    
+    # Add additional performance metrics  
+    result['start_time'] = start_time  
+    result['end_time'] = time.time()  
+    result['board'] = board  
+    
+    return result  
