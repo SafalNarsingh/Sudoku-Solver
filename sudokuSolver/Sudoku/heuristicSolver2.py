@@ -36,7 +36,7 @@ class SudokuHeuristicSolver:
         
         # Start recursive solving
         self.solved, self.solution = False, None
-        success = self._heuristics(board, possibilities)
+        success = self.solve_with_performance_tracking(board, possibilities)
         
         return success, self.solution
 
@@ -175,7 +175,7 @@ class SudokuHeuristicSolver:
                             continue
                 
                 # Recurse
-                if self._heuristics(board, updated_poss):
+                if self.solve_with_performance_tracking(board, updated_poss):
                     return True
                 
                 # Backtrack
