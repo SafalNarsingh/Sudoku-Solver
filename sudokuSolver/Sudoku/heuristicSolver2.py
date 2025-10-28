@@ -1,3 +1,4 @@
+import time  
 import random  
 from typing import List, Dict, Set, Tuple  
 
@@ -103,12 +104,13 @@ def solve_sudoku(board: List[List[int]],
     Returns:  
         Dictionary with solving results  
     """  
+    start_time = time.time()  
     original_board = [row[:] for row in board]  
     
     results = {  
         'solved': False,  
         'solution': None,  
-        'board': original_board,
+        'time_taken': 0,  
         'error': None  
     }  
     
@@ -159,6 +161,8 @@ def solve_sudoku(board: List[List[int]],
                        possibilities: Dict[Tuple[int, int], Set[int]]) -> bool:  
         """Recursive backtracking solver with constraint propagation"""  
         # Check time limit  
+        if time.time() - start_time > time_limit:  
+            return False  
         
         # Apply constraint propagation (naked singles)
         while apply_naked_singles(board, possibilities):
@@ -213,6 +217,8 @@ def solve_sudoku(board: List[List[int]],
             backtrack_solve(board, initial_possibilities)  
     except Exception as e:  
         results['error'] = str(e)  
+    finally:  
+        results['time_taken'] = time.time() - start_time  
     
     return results  
 
@@ -227,8 +233,12 @@ def solve_with_performance_tracking(board: List[List[int]]) -> Dict:
     Returns:  
         Dictionary with detailed solving metrics  
     """  
+    start_time = time.time()  
     result = solve_sudoku(board)  
     
+    # Add additional performance metrics  
+    result['start_time'] = start_time  
+    result['end_time'] = time.time()  
     result['board'] = board  
     
     return result
