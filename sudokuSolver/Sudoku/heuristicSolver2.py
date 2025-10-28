@@ -94,7 +94,7 @@ def solve_sudoku(board: List[List[int]],
                  time_limit: float = 5.0,   
                  use_randomization: bool = True) -> Dict:  
     """  
-    Comprehensive Sudoku solving function  
+    Comprehensive Sudoku solving function with optimized constraint propagation
     
     Args:  
         board (List[List[int]]): 9x9 Sudoku grid  
@@ -114,65 +114,107 @@ def solve_sudoku(board: List[List[int]],
         'error': None  
     }  
     
-    def is_valid_move(board: List[List[int]], row: int, col: int, num: int) -> bool:  
-        """Check if a move is valid"""  
-        # Check row and column  
-        for x in range(9):  
-            if board[row][x] == num or board[x][col] == num:  
-                return False  
-        
-        # Check 3x3 box  
-        start_row, start_col = 3 * (row // 3), 3 * (col // 3)  
-        for i in range(3):  
-            for j in range(3):  
-                if board[start_row + i][start_col + j] == num:  
-                    return False  
-        
-        return True  
+    # Pre-compute affected cells for each position (cache)
+    affected_cache = {}
+    for r in range(9):
+        for c in range(9):
+            affected_cache[(r, c)] = get_affected_cells(r, c)
     
-    def backtrack_solve(board: List[List[int]]) -> bool:  
-        """Recursive backtracking solver"""  
+    def propagate_constraints(possibilities: Dict[Tuple[int, int], Set[int]], 
+                            row: int, col: int, num: int) -> bool:
+        """
+        Propagate constraints after placing a number.
+        Returns False if contradiction found, True otherwise.
+        """
+        # Remove num from all affected cells
+        for r, c in affected_cache[(row, col)]:
+            if (r, c) in possibilities:
+                possibilities[(r, c)].discard(num)
+                # Early contradiction detection
+                if len(possibilities[(r, c)]) == 0:
+                    return False
+        return True
+    
+    def apply_naked_singles(board: List[List[int]], 
+                           possibilities: Dict[Tuple[int, int], Set[int]]) -> bool:
+        """
+        Apply naked singles (cells with only one possibility).
+        Returns True if any cell was filled.
+        """
+        changed = False
+        cells_to_fill = []
+        
+        for (row, col), possible_values in list(possibilities.items()):
+            if len(possible_values) == 1:
+                cells_to_fill.append((row, col, list(possible_values)[0]))
+        
+        for row, col, num in cells_to_fill:
+            board[row][col] = num
+            del possibilities[(row, col)]
+            if not propagate_constraints(possibilities, row, col, num):
+                return False
+            changed = True
+        
+        return changed
+    
+    def backtrack_solve(board: List[List[int]], 
+                       possibilities: Dict[Tuple[int, int], Set[int]]) -> bool:  
+        """Recursive backtracking solver with constraint propagation"""  
         # Check time limit  
         if time.time() - start_time > time_limit:  
             return False  
         
-        # Find empty cell  
-        empty = None  
-        for r in range(9):  
-            for c in range(9):  
-                if board[r][c] == 0:  
-                    empty = (r, c)  
-                    break  
-            if empty:  
-                break  
+        # Apply constraint propagation (naked singles)
+        while apply_naked_singles(board, possibilities):
+            if not possibilities:  # All cells filled
+                results['solved'] = True  
+                results['solution'] = [row[:] for row in board]  
+                return True
         
-        # If no empty cell, puzzle is solved  
-        if not empty:  
+        # Check if puzzle is solved
+        if not possibilities:
             results['solved'] = True  
             results['solution'] = [row[:] for row in board]  
-            return True  
+            return True
         
-        row, col = empty  
+        # Find most constrained cell
+        row, col, possible_values = find_most_constrained_cell(possibilities)
         
-        # Determine possible values  
-        values = list(range(1, 10))  
+        # If no possibilities for a cell, backtrack
+        if not possible_values:
+            return False
+        
+        # Try each possible value
+        values = possible_values[:]
         if use_randomization:  
             random.shuffle(values)  
         
         for num in values:  
-            if is_valid_move(board, row, col, num):  
-                board[row][col] = num  
-                
-                if backtrack_solve(board):  
+            # Save state
+            board[row][col] = num
+            new_possibilities = {k: v.copy() for k, v in possibilities.items()}
+            del new_possibilities[(row, col)]
+            
+            # Propagate constraints
+            if propagate_constraints(new_possibilities, row, col, num):
+                if backtrack_solve(board, new_possibilities):  
                     return True  
-                
-                board[row][col] = 0  
+            
+            # Backtrack
+            board[row][col] = 0  
         
         return False  
     
     try:  
-        # Attempt to solve  
-        backtrack_solve(board)  
+        # Initialize possibilities
+        initial_possibilities = initialize_possibilities(board)
+        
+        # Check for immediate contradictions
+        if any(len(poss) == 0 for poss in initial_possibilities.values()):
+            results['error'] = 'Unsolvable puzzle (contradiction found)'
+        else:
+            # Attempt to solve  
+            backtrack_solve(board, initial_possibilities)  
     except Exception as e:  
         results['error'] = str(e)  
     finally:  
@@ -199,4 +241,4 @@ def solve_with_performance_tracking(board: List[List[int]]) -> Dict:
     result['end_time'] = time.time()  
     result['board'] = board  
     
-    return result  
+    return result
